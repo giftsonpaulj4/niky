@@ -1,3 +1,6 @@
+CI Pipeline for a Python App Using GitHub 
+Actions and Docker Hub
+
 STEP 1 — Create a new project folder
 ------------------------------------
 mkdir python-ci-docker-lab

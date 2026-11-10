@@ -1,4 +1,6 @@
- 
+Flask App Containerization and Docker Hub
+
+Deployment 
 Step 1: Set up the Project Folder Structure 
   Create a directory named 'flask-docker-app' with the following hierarchy: 
     flask-docker-app/ 

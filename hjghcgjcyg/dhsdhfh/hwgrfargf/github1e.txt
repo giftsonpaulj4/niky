@@ -1,0 +1,60 @@
+Procedure
+
+Step 1: Installing and Configuring Git
+
+git config --global user.name "Your Name"
+git config --global user.email your_email@domain.com
+
+Step 2: Initializing the Local Git Repository
+ (e.g., C:\Users\urk23ai1025\Desktop\ex1).
+
+command:git init
+Verify that the hidden .git directory is created.
+
+Step 3: Creating and Staging Project Files
+Create your source code files such as ex.py and ex1.py inside the project folder.
+Check the status of untracked files in the working directory:
+git status
+Add all files to the staging area (index) to prepare them for commit:
+git add . (or git add ex.py)
+
+Step 4: Committing Changes Locally
+Save the staged changes to your local Git repository history with an informative message:
+git commit -m "initial commit"
+Verify the commit history using:
+git log
+
+Step 5: Creating Remote Repository and Linking with Local Git
+Log in to your GitHub account (https://github.com).
+Click New repository, set the repository name as Devops-Ex1, and choose initial visibility.
+Link your local repository to the newly created remote repository using:
+git remote add origin https://github.com/DavidJayaraj01/Devops-Ex1.git
+Verify the linked remote URL:
+git remote -v
+
+Step 6: Pushing Local Commits to GitHub (Main Branch)
+Push your local main branch commits to the remote GitHub repository:
+git push -u origin main
+Open the GitHub repository URL in the browser to confirm that the files ex.py and ex1.py are uploaded.
+
+Step 7: Creating and Switching to a New Branch
+Create a new branch named main1 and switch to it using:
+git checkout -b main1
+Confirm the active branch using:
+git branch
+
+Step 8: Modifying Files and Committing in the New Branch
+Open and modify the file ex.py with your code (e.g., print("URK23AI1025")).
+Check the modified status:
+git status
+Stage the modified file and commit the changes:
+git add ex.py
+git commit -m "commit"
+
+Step 9: Pushing the New Branch to GitHub
+Push the new branch main1 and its commit to the remote repository:
+git push origin main1
+Refresh the GitHub repository page to verify that the main1 branch has been pushed.
+
+-
+

@@ -1,0 +1,131 @@
+ 
+Step 1: Set up the Project Folder Structure 
+  Create a directory named 'flask-docker-app' with the following hierarchy: 
+    flask-docker-app/ 
+    ├── app.py 
+    ├── requirements.txt 
+    └── Dockerfile 
+ 
+Step 2: Develop the Flask Web Application (app.py) 
+  Create 'app.py' and write code to instantiate a Flask app, render an HTML  
+  template with styled CSS cards and gradient background, and bind the server  
+  to host '0.0.0.0' and port 5000. 
+ 
+Step 3: Define Dependencies (requirements.txt) 
+  Create 'requirements.txt' and specify the required Flask framework version: 
+    Flask==2.2.5 
+ 
+Step 4: Create the Dockerfile 
+  Define container build instructions: 
+  - FROM python:3.9-slim              
+  - WORKDIR /app                      
+  - COPY requirements.txt .           
+  - RUN pip install -r requirements.txt 
+  - COPY . .                         
+  - EXPOSE 5000                      
+  - CMD ["python", "app.py"]         
+ 
+Step 5: Build the Docker Image 
+  Open terminal in 'flask-docker-app' and execute: 
+    docker build -t flask-docker-app . 
+ 
+Step 6: Run and Verify the Container Locally 
+  Execute: 
+24CS2019 DevOps Lab 
+9 
+ 
+    docker run -p 5000:5000 flask-docker-app 
+  Open a web browser and navigate to: 
+    http://localhost:5000 
+  Verify that the web application renders successfully. 
+ 
+Step 7: Authenticate with Docker Hub 
+  Log in to Docker Hub via CLI: 
+    docker login 
+ 
+Step 8: Tag the Docker Image for Remote Repository 
+  Tag the local image with your Docker Hub username: 
+    docker tag flask-docker-app klassy01/flask-docker-app:latest 
+ 
+Step 9: Push the Image to Docker Hub 
+  Push the image layers to the public registry: 
+    docker push klassy01/flask-docker-app:latest 
+ 
+Step 10: Test Pull and Run on Any Target Machine 
+  Verify image distribution by pulling and executing on port 5050: 
+    docker pull klassy01/flask-docker-app:latest 
+    docker run -p 5050:5000 klassy01/flask-docker-app:latest 
+  Open browser at: 
+    http://localhost:5050 
+ 
+Sample Inputs 
+ 
+[A] app.py 
+ 
+from flask import Flask, render_template_string 
+app = Flask(__name__) 
+HTML_TEMPLATE = """ 
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8"> 
+<title>Flask Docker App</title> 
+<style> 
+body { 
+background: linear-gradient(to right, #00c6ff, #0072ff); 
+color: white; 
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+text-align: center; 
+padding-top: 100px; 
+} 
+h1 { 
+font-size: 3em; 
+margin-bottom: 0.2em; 
+} 
+p { 
+font-size: 1.5em; 
+24CS2019 DevOps Lab 
+10 
+ 
+} 
+.card { 
+background: rgba(255, 255, 255, 0.1); 
+padding: 2em; 
+border-radius: 20px; 
+box-shadow: 0 0 20px rgba(0,0,0,0.3); 
+width: 50%; 
+margin: auto; 
+} 
+</style> 
+</head> 
+<body> 
+<div class="card"> 
+<h1>        Welcome to Flask + Docker!</h1> 
+<p>This is a vibrant web page running inside a Docker container.</p> 
+<p>Change the code → Rebuild → Restart Docker to see updates!</p> 
+</div> 
+</body> 
+</html> 
+""" 
+ 
+@app.route('/') 
+def home(): 
+    return render_template_string(HTML_TEMPLATE) 
+ 
+if __name__ == '__main__': 
+    app.run(host='0.0.0.0', port=5000) -------------------------------------------------------------------------------- 
+ --- [B] requirements.txt --- -------------------------------------------------------------------------------- 
+Flask==2.2.5 -------------------------------------------------------------------------------- 
+ --- [C] Dockerfile --- -------------------------------------------------------------------------------- 
+FROM python:3.9-slim 
+ 
+WORKDIR /app 
+ 
+COPY requirements.txt . 
+RUN pip install -r requirements.txt 
+ 
+COPY . . 
+ 
+EXPOSE 5000 
+ 
+CMD ["python", "app.py"] 

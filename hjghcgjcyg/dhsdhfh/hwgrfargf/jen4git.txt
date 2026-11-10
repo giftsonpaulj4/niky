@@ -1,3 +1,5 @@
+Lab Manual: Jenkins deployment Using Docker
+
 Step 1: Set up Jenkins with Docker Compose
 Create a folder for the lab:
 mkdir ~/jenkins-static-site && cd ~/jenkins-static-site

@@ -1,162 +1,116 @@
-Step 1: Set Up Jenkins Using Docker Compose 
-  Create the project directory and the compose file (see Sample Inputs), then start Jenkins: 
+ex Managing Kubernetes Resources Using kubectl 
+CLI 
+
+
+Step 1: Install Docker 
+  Download and install Docker Desktop from Docker's website, enable the WSL2 backend, 
+  start Docker Desktop, and verify the installation: 
  
-    mkdir ~/jenkins-reactive-site 
-    cd ~/jenkins-reactive-site 
-    docker compose up -d 
+    docker --version 
  
-  Get the initial admin password and open http://localhost:8080 to finish setup: 
-    docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword 
+Step 2: Install kubectl (Kubernetes CLI) 
+  Open PowerShell as Administrator and install kubectl using Chocolatey: 
+ 
+    choco install kubernetes-cli 
+ 
+  Verify the installation: 
+    kubectl version --client 
+ 
+Step 3: Install and Start Minikube 
+  Install Minikube and start the cluster using the Docker driver: 
+ 
+    choco install minikube 
+    minikube start --driver=docker 
+ 
+  Verify that the cluster is running: 
+    minikube status 
+    kubectl get nodes 
+  The node must be in 'Ready' state before proceeding. 
+ 
+Step 4: Create a Simple Pod 
+  Create a file named 'nginx-pod.yaml' (see Sample Inputs) and apply the manifest: 
+ 
+    kubectl apply -f nginx-pod.yaml 
+ 
+  Check the Pod status (expected: nginx-pod 1/1 Running): 
+    kubectl get pods 
+ 
+  View detailed information about the Pod: 
+    kubectl describe pod nginx-pod 
+ 
+  Forward a local port to access the Pod: 
+    kubectl port-forward pod/nginx-pod 8080:80 
+24CS2019 DevOps Lab 
+38 
+ 
+ 
+  Open http://localhost:8080 in a browser to view the nginx welcome page. 
+ 
+  Press Ctrl+C to stop port-forwarding, then delete the Pod: 
+    kubectl delete pod nginx-pod 
+ 
+Step 5: Create a Deployment and Scale It 
+  Create a Deployment and verify the Deployment and its Pods: 
+ 
+    kubectl create deployment my-nginx --image=nginx 
+    kubectl get deployments 
+    kubectl get pods -l app=my-nginx 
+ 
+  Scale the Deployment to 3 replicas: 
+ 
+    kubectl scale deployment my-nginx --replicas=3 
+    kubectl get pods 
+ 
+Step 6: Perform a Rolling Update and Rollback 
+  Update the container image to a specific version: 
+ 
+    kubectl set image deployment/my-nginx nginx=nginx:1.25 
+    kubectl rollout status deployment/my-nginx 
+ 
+  If something goes wrong, roll back to the previous revision: 
+    kubectl rollout undo deployment/my-nginx 
+ 
+Step 7: Expose the Deployment as a Service 
+  Expose the Deployment using a NodePort Service and check it: 
+ 
+    kubectl expose deployment my-nginx --type=NodePort --port=80 
+    kubectl get svc 
+ 
+  Get the application URL from Minikube and open it in a browser: 
+    minikube service my-nginx --url 
+ 
+  To remove the Service: 
+    kubectl delete svc my-nginx 
+ 
+Step 8: Clean Up Resources 
+  Delete all resources created during the experiment: 
+ 
+    kubectl delete deployment my-nginx 
+    kubectl delete svc my-nginx 
+    kubectl delete all --all -n default 
+ 
+Step 9: Stop or Delete the Cluster (Optional) 
+  Stop the cluster, or delete it completely: 
  
 24CS2019 DevOps Lab 
-29 
+39 
  
-Step 2: Install the HTML Publisher Plugin 
-  Open Manage Jenkins > Plugins, install 'HTML Publisher', and restart Jenkins if required. 
- 
-Step 3: Allow JavaScript in Published Reports 
-  By default Jenkins blocks JavaScript in published reports. Open Manage Jenkins > 
-  Script Console and run: 
- 
-    System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "") 
- 
-  This setting lasts until Jenkins restarts; run it again after a restart. 
- 
-Step 4: Create the Jenkins Pipeline Job 
-  Click New Item, select Pipeline, name it 'karunya-reactive-site', and choose 
-  'Pipeline script' as the definition. 
- 
-Step 5: Add the Pipeline Script 
-  Paste the pipeline script given in Sample Inputs (it creates index.html, style.css and 
-  app.js, publishes the site, and archives it) and click Save. 
- 
-Step 6: Execute the Pipeline 
-  Click Build Now and wait for a successful build. Then click 
-  'Karunya University - Reactive Site' in the left menu. 
- 
-Step 7: Observe the Reactive Behaviour 
-  Click the 'Update Content' button and observe that the text changes without 
-  reloading the page. 
+    minikube stop 
+    minikube delete 
  
 Sample Inputs 
  
-[A] docker-compose.yml -------------------------------------------------------------------------------- 
-version: '3.8' 
+[A] nginx-pod.yaml 
  
-services: 
-  jenkins: 
-    image: jenkins/jenkins:lts 
-    container_name: jenkins 
-    restart: unless-stopped 
+apiVersion: v1 
+kind: Pod 
+metadata: 
+  name: nginx-pod 
+  labels: 
+    app: nginx 
+spec: 
+  containers: 
+  - name: nginx 
+    image: nginx:latest 
     ports: 
-      - "8080:8080" 
-      - "50000:50000" 
-    volumes: 
-      - jenkins_home:/var/jenkins_home 
-      - /var/run/docker.sock:/var/run/docker.sock 
- 
-volumes: 
-  jenkins_home: 
-    driver: local -------------------------------------------------------------------------------- 
-24CS2019 DevOps Lab 
-30 
- 
- 
-[B] Jenkinsfile (Pipeline script) -------------------------------------------------------------------------------- 
-pipeline { 
-  agent any 
-  stages { 
-    stage('Generate Reactive Site') { 
-      steps { 
-        script { 
-          def year = sh(script: 'date +%Y', returnStdout: true).trim() 
-          sh 'rm -rf site || true' 
-          sh 'mkdir -p site/assets' 
- 
-          writeFile file: 'site/index.html', text: """<!doctype html> 
-<html lang="en"> 
-<head> 
-<meta charset="utf-8"/> 
-<meta name="viewport" content="width=device-width, initial-scale=1"/> 
-<title>Karunya University - Reactive Site</title> 
-<link rel="stylesheet" href="assets/style.css"/> 
-</head> 
-<body> 
-<header class="site-header"> 
-<div class="container"> 
-<h1>Karunya University</h1> 
-<p class="tagline">Values - Knowledge - Service</p> 
-</div> 
-</header> 
- 
-<main class="container"> 
-<section class="card"> 
-<h2 id="about-title"></h2> 
-<p id="about-text"></p> 
-<button onclick="updateContent()">Update Content</button> 
-</section> 
-</main> 
- 
-<footer class="site-footer container"> 
-<p>&copy; ${year} Karunya University - Generated by Jenkins</p> 
-</footer> 
-<script src="assets/app.js"></script> 
-</body> 
-</html> 
-""" 
- 
-          writeFile file: 'site/assets/style.css', text: """ 
-body { font-family: Arial, sans-serif; margin:0; } 
-.container { max-width:800px; margin:0 auto; padding:20px; } 
-.site-header { background:#0b3d91; color:#fff; padding:20px; } 
-.card { background:#fff; border:1px solid #ddd; padding:15px; border-radius:6px; } 
-24CS2019 DevOps Lab 
-31 
- 
-.site-footer { text-align:center; font-size:12px; color:#555; margin-top:20px; } 
-button { padding:8px 12px; cursor:pointer; } 
-""" 
- 
-          writeFile file: 'site/assets/app.js', text: """ 
-let state = { 
-  title: "About Karunya University", 
-  description: "Karunya Institute of Technology and Sciences is a leading centre for higher 
-education in India." 
-}; 
- 
-function render() { 
-  document.getElementById("about-title").innerText = state.title; 
-  document.getElementById("about-text").innerText = state.description; 
-} 
- 
-function updateContent() { 
-  state.description = "This content was updated dynamically without page reload!"; 
-  render(); 
-} 
- 
-document.addEventListener("DOMContentLoaded", render); 
-""" 
-        } 
-      } 
-    } 
- 
-    stage('Publish Site') { 
-      steps { 
-        publishHTML([ 
-          allowMissing: false, 
-          alwaysLinkToLastBuild: true, 
-          keepAll: true, 
-          reportDir: 'site', 
-          reportFiles: 'index.html', 
-          reportName: 'Karunya University - Reactive Site' 
-        ]) 
-      } 
-    } 
-  } 
- 
-  post { 
-    always { 
-      archiveArtifacts artifacts: 'site/**', fingerprint: true 
-    } 
-  } 
-} ----
+    - containerPort: 80
